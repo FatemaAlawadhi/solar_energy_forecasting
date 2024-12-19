@@ -197,6 +197,52 @@ def visualize_results(results):
 
     print(f"\nPlot saved to: {output_path}")
 
+def plot_average_scores(results):
+    # Calculate average R² scores for each model
+    model_names = list(results.keys())
+    avg_scores = [sum(scores.values()) / len(scores) for scores in results.values()]
+
+    # Separate positive and negative average scores
+    pos_avg_scores = [score if score >= 0 else 0 for score in avg_scores]
+    neg_avg_scores = [score if score < 0 else 0 for score in avg_scores]
+
+    # Create a combined plot for average R² scores
+    fig, axes = plt.subplots(1, 2, figsize=(15, 6), facecolor='white')
+    fig.suptitle('Average R² Scores Across All Locations', fontsize=14, y=1.02)
+
+    # Plot negative average R² scores on the left
+    axes[0].barh(model_names, neg_avg_scores, color='red')
+    axes[0].set_title('Negative Average R² Scores')
+    axes[0].set_xlabel('Average R² Score')
+    axes[0].grid(True, alpha=0.3)
+    axes[0].set_xlim(min(neg_avg_scores) * 1.1, 0)  # Add 10% margin
+
+    # Plot positive average R² scores on the right
+    axes[1].barh(model_names, pos_avg_scores, color='green')
+    axes[1].set_title('Positive Average R² Scores')
+    axes[1].set_xlabel('Average R² Score')
+    axes[1].grid(True, alpha=0.3)
+    axes[1].set_xlim(0, max(pos_avg_scores) * 1.1)  # Add 10% margin
+
+    # Adjust layout
+    plt.subplots_adjust(
+        top=0.85,
+        bottom=0.1,
+        left=0.1,
+        right=0.9,
+        hspace=0.4,
+        wspace=0.4
+    )
+
+    # Save the combined plot
+    plots_folder = 'backend/pkg/model/monthly/plots'
+    os.makedirs(plots_folder, exist_ok=True)
+    output_path = os.path.join(plots_folder, 'average_model_scores.png')
+    plt.savefig(output_path, bbox_inches='tight', dpi=150)
+    plt.close()
+
+    print(f"\nAverage R² scores plot saved to: {output_path}")
+
 def main():
     # Load data
     X, y = load_and_prepare_data()
@@ -227,6 +273,9 @@ def main():
     
     # Visualize results
     visualize_results(results)
+
+    # Plot average scores
+    plot_average_scores(results)
 
 if __name__ == "__main__":
     main()

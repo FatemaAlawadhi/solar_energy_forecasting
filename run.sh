@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Install dependencies
+npm install axios @types/axios
+
 # Function to run the backend
 run_backend() {
   echo "Running backend..."
