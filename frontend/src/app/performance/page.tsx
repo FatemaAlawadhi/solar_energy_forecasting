@@ -30,7 +30,11 @@ const Performance = () => {
     monthly: {
       generation: {
         labels: string[];
-        datasets: { name: string; data: number[] }[];
+        datasets: {
+          name: string;
+          actualData: number[];
+          theoreticalData: number[];
+        }[];
       };
       pr: {
         labels: string[];
@@ -102,18 +106,30 @@ const Performance = () => {
           item => `${item.year}-${String(item.month).padStart(2, '0')}`
         ))).sort();
 
+        const locationNames = Array.from(new Set(data.monthly_generation.map(item => item.location_name)));
+
         const monthlyGeneration = {
           labels: monthlyLabels,
-          datasets: [
-            {
-              name: "Actual Generation",
-              data: data.monthly_generation.map(item => item.actual_kwh)
-            },
-            {
-              name: "Theoretical Generation",
-              data: data.monthly_generation.map(item => item.theoretical_kwh)
-            }
-          ]
+          datasets: locationNames.map(location => {
+            const locationData = data.monthly_generation.filter(item => item.location_name === location);
+            return {
+              name: location,
+              actualData: monthlyLabels.map(label => {
+                const [year, month] = label.split('-').map(Number);
+                const matchingData = locationData.find(item => 
+                  item.year === year && item.month === month
+                );
+                return matchingData ? matchingData.actual_kwh : 0;
+              }),
+              theoreticalData: monthlyLabels.map(label => {
+                const [year, month] = label.split('-').map(Number);
+                const matchingData = locationData.find(item => 
+                  item.year === year && item.month === month
+                );
+                return matchingData ? matchingData.theoretical_kwh : 0;
+              })
+            };
+          })
         };
 
         const monthlyPR = {
@@ -276,38 +292,27 @@ const Performance = () => {
         
         {/* Generation Analysis Charts */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-8">
-          {performanceData.monthly.generation.datasets[0]?.data && 
-            performanceData.overall.pr.labels.map((location, index) => {
-              // Filter data for this specific location
-              const locationData = {
-                labels: performanceData.monthly.generation.labels.filter((_, i) => 
-                  i % performanceData.overall.pr.labels.length === index
-                ),
-                datasets: [
-                  {
-                    name: "Actual Generation",
-                    data: performanceData.monthly.generation.datasets[0].data.filter((_, i) => 
-                      i % performanceData.overall.pr.labels.length === index
-                    )
-                  },
-                  {
-                    name: "Theoretical Generation",
-                    data: performanceData.monthly.generation.datasets[1].data.filter((_, i) => 
-                      i % performanceData.overall.pr.labels.length === index
-                    )
-                  }
-                ],
-                title: `Theoretical vs Actual Generation - ${location}`
-              };
-
-              return (
-                <ChartOne 
-                  key={location}
-                  data={locationData}
-                />
-              );
-            })
-          }
+          {performanceData.monthly.generation.datasets.map((locationData, index) => {
+            return (
+              <ChartOne 
+                key={locationData.name}
+                data={{
+                  labels: performanceData.monthly.generation.labels,
+                  datasets: [
+                    {
+                      name: "Actual Generation",
+                      data: locationData.actualData
+                    },
+                    {
+                      name: "Theoretical Generation",
+                      data: locationData.theoreticalData
+                    }
+                  ],
+                  title: `Theoretical vs Actual Generation - ${locationData.name}`
+                }}
+              />
+            );
+          })}
         </div>
       </div>
 
