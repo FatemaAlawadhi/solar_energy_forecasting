@@ -23,6 +23,9 @@ The Solar Energy Forecasting Project aims to provide accurate predictions of sol
 - **Frontend**: Next.js, React
 - **Machine Learning**: Scikit-learn, Pandas, NumPy
 
+## Dashboard
+https://github.com/user-attachments/assets/4eb8895d-e463-495b-a5d8-ae4c1df9a4af
+
 ## Setup Instructions
 
 ### Prerequisites
